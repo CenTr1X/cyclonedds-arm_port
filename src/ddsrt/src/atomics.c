@@ -10,6 +10,7 @@
 
 #include "dds/ddsrt/atomics.h"
 
+
 /* LD, ST */
 DDS_EXPORT extern inline uint32_t ddsrt_atomic_ld32 (const volatile ddsrt_atomic_uint32_t *x);
 #if DDSRT_HAVE_ATOMIC64
