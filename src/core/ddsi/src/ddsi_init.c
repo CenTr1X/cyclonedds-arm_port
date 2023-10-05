@@ -1386,7 +1386,7 @@ int ddsi_init (struct ddsi_domaingv *gv)
 
     if (procname) {
       ddsi_xqos_add_property_if_unset(&gv->default_local_xqos_pp, true, DDS_BUILTIN_TOPIC_PARTICIPANT_PROPERTY_PROCESS_NAME, procname);
-      ddsrt_free(procname);
+      //ddsrt_free(procname);
     }
 
     snprintf(namebuf, sizeof(namebuf), "%" PRIdPID, ddsrt_getpid());

@@ -13,7 +13,7 @@ set(CMAKE_C_COMPILER ${tools}gcc)
 set(CMAKE_CXX_COMPILER ${tools}g++)
 
 #set(ARCH_CPU_FLAGS "-mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard -DUSE_HAL_DRIVER -DSTM32F407xx -Og -Wall -fdata-sections -ffunction-sections")
-set(ARCH_CPU_FLAGS "-mcpu=arm926ej-s  -mthumb -marm -march=armv5tej  -DUSE_HAL_DRIVER -Og -Wall -fdata-sections -ffunction-sections")
+set(ARCH_CPU_FLAGS "-mcpu=arm926ej-s -march=armv5tej -O0 ")
 set(ARCH_OPT_FLAGS "")
 
 #set(ARCH_CPU_FLAGS -mcpu=cortex-m4)

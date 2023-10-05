@@ -17,6 +17,18 @@
 
 extern inline TickType_t ddsrt_duration_to_ticks_ceil(dds_duration_t reltime);
 
+#include "lwip/sys.h"
+int
+clock_gettime(clockid_t clock_id, struct timespec *tp)
+{
+  u32_t now = sys_now();
+
+  tp->tv_sec = now / 1000;
+  tp->tv_nsec = (now % 1000) * 1000000;
+
+  return 0;
+}
+
 dds_time_t dds_time(void)
 {
   struct timespec ts;

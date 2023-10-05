@@ -160,7 +160,7 @@ else()
   endif()
 endif()
 
-check_symbol_exists("gethostname" ${hostname_header} DDSRT_HAVE_GETHOSTNAME)
+#check_symbol_exists("gethostname" ${hostname_header} DDSRT_HAVE_GETHOSTNAME)
 check_symbol_exists("inet_ntop" ${inet_header} DDSRT_HAVE_INET_NTOP)
 check_symbol_exists("inet_pton" ${inet_header} DDSRT_HAVE_INET_PTON)
 check_symbol_exists("getaddrinfo" ${netdb_header} DDSRT_HAVE_GETADDRINFO)
