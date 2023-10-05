@@ -19,6 +19,21 @@ It is a tier-1 middleware for the Robot Operating System [ROS 2](https://docs.ro
 * [Performance](#performance)
 * [Configuration](#run-time-configuration)
 
+# Usage
+
+1. 运行下面命令构建库
+
+```shell
+cd build
+
+cmake -DCMAKE_TOOLCHAIN_FILE=../arm_toolchain.cmake -DWITH_FREERTOS=ON -DWITH_LWIP=ON -DBUILD_IDLC=OFF -DENABLE_SECURITY=NO -DENABLE_TOPIC_DISCOVERY=NO -DENABLE_TYPE_DISCOVERY=NO  -DCMAKE_INSTALL_PREFIX=../dds ..
+
+cmake --build . --target install  .. -v 
+```
+
+2. 运行`sh ../copy.sh`，需要cyclonedds和drive文件夹在同一个目录下
+3. 有时需要删掉build目录重新构建，则运行`rebuild.sh` 
+
 # What is DDS?
 
 DDS is the best-kept secret in distributed systems, one that has been around for much longer than most publish-subscribe messaging systems and still outclasses so many of them.
