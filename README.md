@@ -26,7 +26,7 @@ It is a tier-1 middleware for the Robot Operating System [ROS 2](https://docs.ro
 ```shell
 cd build
 
-cmake -DCMAKE_TOOLCHAIN_FILE=../arm_toolchain.cmake -DWITH_FREERTOS=ON -DWITH_LWIP=ON -DBUILD_IDLC=OFF -DENABLE_SECURITY=NO -DENABLE_TOPIC_DISCOVERY=NO -DENABLE_TYPE_DISCOVERY=NO  -DCMAKE_INSTALL_PREFIX=../dds ..
+cmake -DCMAKE_TOOLCHAIN_FILE=../arm_toolchain.cmake -DWITH_FREERTOS=ON -DWITH_LWIP=ON -DBUILD_IDLC=OFF  -DENABLE_TYPE_DISCOVERY=ON  -DENABLE_TOPIC_DISCOVERY=ON -DENABLE_SECURITY=NO  -DCMAKE_INSTALL_PREFIX=../dds ..
 
 cmake --build . --target install  .. -v 
 ```
