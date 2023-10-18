@@ -25,8 +25,15 @@
 #include "ddsi__thread.h"
 #include "ddsi__sysdeps.h"
 
+typedef struct {
+  char buf[2048];
+  size_t pos;
+} log_buffer_t;
+
+static log_buffer_t log_buffer;
+
 struct ddsi_thread_states thread_states;
-ddsrt_thread_local struct ddsi_thread_state *tsd_thread_state;
+//ddsrt_thread_local struct ddsi_thread_state *tsd_thread_state;
 
 extern inline bool ddsi_vtime_awake_p (ddsi_vtime_t vtime);
 extern inline bool ddsi_vtime_asleep_p (ddsi_vtime_t vtime);
@@ -61,6 +68,34 @@ void ddsi_thread_vtime_trace (struct ddsi_thread_state *thrst)
   thrst->stks_depth[i] = backtrace (thrst->stks[i], DDSI_THREAD_STACKDEPTH);
 }
 #endif
+
+dds_return_t
+ddsrt_thread_local_storage_push(int index, void *value){
+  assert(index < configNUM_THREAD_LOCAL_STORAGE_POINTERS);
+
+  vTaskSetThreadLocalStoragePointer(xTaskGetCurrentTaskHandle(), index, value);
+  return DDS_RETCODE_OK;
+}
+
+void *
+ddsrt_thread_local_storage_pull(int index){
+  assert(index < configNUM_THREAD_LOCAL_STORAGE_POINTERS);
+
+  return pvTaskGetThreadLocalStoragePointer(xTaskGetCurrentTaskHandle(), index);
+}
+
+dds_return_t
+ddsrt_thread_local_storage_init(){
+  TaskHandle_t handler = xTaskGetCurrentTaskHandle();
+  int freelist_inner_idx = -1;
+  struct ddsi_thread_state *tsd_thread_state = NULL;
+  struct thread_context_t *thread_context = NULL;
+
+  vTaskSetThreadLocalStoragePointer(handler, 0, freelist_inner_idx);//freelist
+  vTaskSetThreadLocalStoragePointer(handler, 1, tsd_thread_state);//tsd_thread_state
+  vTaskSetThreadLocalStoragePointer(handler, 2, thread_context);//thread_context
+  vTaskSetThreadLocalStoragePointer(handler, 3, &log_buffer);//log_buffer
+}
 
 static void *ddsrt_malloc_aligned_cacheline (size_t size)
 {
@@ -109,7 +144,7 @@ void ddsi_thread_states_init (void)
      (not strictly required, but it'll get one eventually anyway, and this makes
      it rather more clear). */
 #ifndef NDEBUG
-  struct ddsi_thread_state * const ts0 = tsd_thread_state;
+  struct ddsi_thread_state * const ts0 = ddsrt_thread_local_storage_pull(1);
 #endif
   struct ddsi_thread_state * const thrst = ddsi_lookup_thread_state_real ();
   assert (ts0 == NULL || ts0 == thrst);
@@ -124,7 +159,8 @@ bool ddsi_thread_states_fini (void)
   struct ddsi_thread_state *thrst = ddsi_lookup_thread_state ();
   assert (ddsi_vtime_asleep_p (ddsrt_atomic_ld32 (&thrst->vtime)));
   reap_thread_state (thrst, true);
-  tsd_thread_state = NULL;
+  struct ddsi_thread_state *tsd_thread_state = NULL;
+  ddsrt_thread_local_storage_push(1, tsd_thread_state);
 
   /* Some applications threads that, at some point, required a thread state, may still be around.
      Of those, the cleanup routine is invoked when the thread terminates.  This should be rewritten
@@ -228,6 +264,7 @@ static struct ddsi_thread_state *lazy_create_thread_state (ddsrt_thread_t self)
 
 struct ddsi_thread_state *ddsi_lookup_thread_state_real (void)
 {
+  struct ddsi_thread_state *tsd_thread_state = ddsrt_thread_local_storage_pull(1);
   struct ddsi_thread_state *thrst = tsd_thread_state;
   if (thrst == NULL)
   {
@@ -235,6 +272,7 @@ struct ddsi_thread_state *ddsi_lookup_thread_state_real (void)
     if ((thrst = find_thread_state (self)) == NULL)
       thrst = lazy_create_thread_state (self);
     tsd_thread_state = thrst;
+    ddsrt_thread_local_storage_push(1, tsd_thread_state);
   }
   assert (thrst != NULL);
   return thrst;
@@ -247,7 +285,8 @@ static uint32_t create_thread_wrapper (void *ptr)
   if (gv)
     GVTRACE ("started new thread %"PRIdTID": %s\n", ddsrt_gettid (), thrst->name);
   assert (thrst->state == DDSI_THREAD_STATE_INIT);
-  tsd_thread_state = thrst;
+  struct ddsi_thread_state *tsd_thread_state = thrst;
+  ddsrt_thread_local_storage_push(1, tsd_thread_state);
   ddsrt_mutex_lock (&thread_states.lock);
   thrst->state = DDSI_THREAD_STATE_ALIVE;
   ddsrt_mutex_unlock (&thread_states.lock);
@@ -256,6 +295,7 @@ static uint32_t create_thread_wrapper (void *ptr)
   thrst->state = DDSI_THREAD_STATE_STOPPED;
   ddsrt_mutex_unlock (&thread_states.lock);
   tsd_thread_state = NULL;
+  ddsrt_thread_local_storage_push(1, tsd_thread_state);
   return ret;
 }
 

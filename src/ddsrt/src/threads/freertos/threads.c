@@ -61,7 +61,7 @@ typedef struct {
   size_t len;
 } thread_registry_t;
 
-static ddsrt_thread_local thread_context_t *thread_context = NULL;
+//static thread_context_t *thread_context = NULL;
 
 static thread_registry_t thread_registry;
 
@@ -182,6 +182,7 @@ static dds_return_t
 thread_context_acquire(thread_context_t **ctxptr)
 {
   dds_return_t rc = DDS_RETCODE_OK;
+  thread_context_t *thread_context = ddsrt_thread_local_storage_pull(2);
   thread_context_t *ctx = thread_context;
 
   if (ctx == NULL) {
@@ -199,6 +200,7 @@ thread_context_acquire(thread_context_t **ctxptr)
     }
     ddsrt_mutex_unlock(&thread_registry.mutex);
     thread_context = ctx;
+    ddsrt_thread_local_storage_push(2, thread_context);
   } else {
     assert(ctx->func != NULL);
     assert(ctx->stat == THREAD_RUNNING);
@@ -325,7 +327,9 @@ thread_start_routine(void *arg)
      thread because a reference to the thread's context is stored and
      synchronization is considerably easier if it's handled there. */
 
-  thread_context = ctx;
+  thread_context_t *thread_context = ctx;
+  ddsrt_thread_local_storage_push(2, thread_context);
+
   ret = ctx->func(ctx->arg);
 
   thread_fini(ctx, ret); /* DO NOT DEREFERENCE THREAD CONTEXT ANYMORE! */
@@ -396,7 +400,7 @@ ddsrt_thread_create(
   } else {
     prio = (UBaseType_t)attr->schedPriority;
   }
-
+  //printf("\n\nthreadname:%s, size:%d\n\n", name, size);
   ddsrt_mutex_lock(&thread_registry.mutex);
 
   /* Thread context is allocated here so that it can be handled when no more
@@ -439,6 +443,8 @@ ddsrt_thread_fini(uint32_t reason)
   (void)reason;
   /* NO-OP if no context exists since thread-local storage and cleanup
      handler references are both stored in the thread context. */
+
+  thread_context_t *thread_context = ddsrt_thread_local_storage_pull(2);
   if ((ctx = thread_context) != NULL) {
     assert(ctx->func != &non_local_thread);
     thread_fini(ctx, 0);

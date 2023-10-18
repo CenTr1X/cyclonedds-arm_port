@@ -101,7 +101,7 @@ void *ddsi_freelist_pop (struct ddsi_freelist *fl)
 
 #elif DDSI_FREELIST_TYPE == DDSI_FREELIST_DOUBLE
 
-static ddsrt_thread_local int freelist_inner_idx = -1;
+//static ddsrt_thread_local int freelist_inner_idx = -1;
 
 void ddsi_freelist_init (struct ddsi_freelist *fl, uint32_t max, size_t linkoff)
 {
@@ -161,6 +161,8 @@ static ddsrt_atomic_uint32_t freelist_inner_idx_off = DDSRT_ATOMIC_UINT32_INIT(0
 
 static int get_freelist_inner_idx (void)
 {
+  int freelist_inner_idx;
+  freelist_inner_idx = (int)ddsrt_thread_local_storage_pull(0);
   if (freelist_inner_idx == -1)
   {
     static const uint64_t unihashconsts[] = {
@@ -170,6 +172,7 @@ static int get_freelist_inner_idx (void)
     uintptr_t addr;
     uint64_t t = (uint64_t) ((uintptr_t) &addr) + ddsrt_atomic_ld32 (&freelist_inner_idx_off);
     freelist_inner_idx = (int) (((((uint32_t) t + unihashconsts[0]) * ((uint32_t) (t >> 32) + unihashconsts[1]))) >> (64 - NN_FREELIST_NPAR_LG2));
+    ddsrt_thread_local_storage_push(0, freelist_inner_idx);
   }
   return freelist_inner_idx;
 }
@@ -184,7 +187,8 @@ static int lock_inner (struct ddsi_freelist *fl)
     {
       ddsrt_atomic_st32(&fl->cc, 0);
       ddsrt_atomic_inc32(&freelist_inner_idx_off);
-      freelist_inner_idx = -1;
+      int freelist_inner_idx = -1;
+      ddsrt_thread_local_storage_push(0, freelist_inner_idx);
     }
   }
   return k;

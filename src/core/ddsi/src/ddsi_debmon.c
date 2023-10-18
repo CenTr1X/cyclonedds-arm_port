@@ -672,6 +672,7 @@ static void debmon_handle_connection (struct ddsi_debug_monitor *dm, struct ddsi
 
 static uint32_t debmon_main (void *vdm)
 {
+  ddsrt_thread_local_storage_init();
   struct ddsi_debug_monitor *dm = vdm;
   ddsrt_mutex_lock (&dm->lock);
   while (!dm->stop)

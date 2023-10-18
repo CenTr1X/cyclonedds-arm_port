@@ -2508,6 +2508,7 @@ static enum dqueue_elem_kind dqueue_elem_kind (const struct ddsi_rsample_chain_e
 
 static uint32_t dqueue_thread (struct ddsi_dqueue *q)
 {
+  ddsrt_thread_local_storage_init();
   struct ddsi_thread_state * const thrst = ddsi_lookup_thread_state ();
 #if DDSRT_HAVE_RUSAGE
   struct ddsi_domaingv const * const gv = ddsrt_atomic_ldvoidp (&thrst->gv);
@@ -2523,7 +2524,10 @@ static uint32_t dqueue_thread (struct ddsi_dqueue *q)
     struct ddsi_rsample_chain sc;
 
     LOG_THREAD_CPUTIME (&gv->logconfig, next_thread_cputime);
-
+    /*char *pcWriteBuffer = malloc(1024);
+    vTaskList((char *)pcWriteBuffer);
+    printf("%s\n", pcWriteBuffer);*/
+    //printf("running...!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!?????????????\n");
     if (q->sc.first == NULL)
       ddsrt_cond_wait (&q->cond, &q->lock);
     sc = q->sc;
@@ -2540,10 +2544,11 @@ static uint32_t dqueue_thread (struct ddsi_dqueue *q)
         ddsrt_cond_broadcast (&q->cond);
       }
       ddsi_thread_state_awake_to_awake_no_nest (thrst);
+      //printf("!!!!!!!!!!!!!!!!!!!!dqueue_elem_kind (e):%d!!!!!!!!!!!!!!!!!!\n", dqueue_elem_kind (e));
       switch (dqueue_elem_kind (e))
       {
         case DQEK_DATA:
-          ret = q->handler (e->sampleinfo, e->fragchain, prdguid, q->handler_arg);
+          ret = q->handler (e->sampleinfo, e->fragchain, prdguid, q->handler_arg); //jump to ddsi_builtins_dqueue_handler
           (void) ret; /* eliminate set-but-not-used in NDEBUG case */
           assert (ret == 0); /* so every handler will return 0 */
           /* FALLS THROUGH */
@@ -2590,7 +2595,6 @@ static uint32_t dqueue_thread (struct ddsi_dqueue *q)
           }
       }
     }
-
     ddsi_thread_state_asleep (thrst);
     ddsrt_mutex_lock (&q->lock);
   }
@@ -2679,6 +2683,7 @@ void ddsi_dqueue_enqueue (struct ddsi_dqueue *q, struct ddsi_rsample_chain *sc, 
   assert (rres > 0);
   assert (sc->first);
   assert (sc->last->next == NULL);
+  printf("enqueue something!!!!!!!\n");
   ddsrt_mutex_lock (&q->lock);
   ddsrt_atomic_add32 (&q->nof_samples, (uint32_t) rres);
   if (ddsi_dqueue_enqueue_locked (q, sc))
@@ -2728,6 +2733,7 @@ void ddsi_dqueue_enqueue1 (struct ddsi_dqueue *q, const ddsi_guid_t *rdguid, str
   assert (rdguid != NULL);
   assert (sc->first);
   assert (sc->last->next == NULL);
+  printf("enqueue in ddsi_dqueue_enqueue1!!!\n");
   ddsrt_mutex_lock (&q->lock);
   ddsrt_atomic_add32 (&q->nof_samples, 1 + (uint32_t) rres);
   if (ddsi_dqueue_enqueue_bubble_locked (q, b))

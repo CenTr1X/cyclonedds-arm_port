@@ -90,6 +90,7 @@ static int threads_vtime_check (const struct ddsi_domaingv *gv, uint32_t *nivs, 
 
 static uint32_t gcreq_queue_thread (struct ddsi_gcreq_queue *q)
 {
+  ddsrt_thread_local_storage_init();
   struct ddsi_thread_state * const thrst = ddsi_lookup_thread_state ();
   ddsrt_mtime_t next_thread_cputime = { 0 };
   ddsrt_mtime_t t_ddsi_trigger_recv_threads = { 0 };
@@ -97,16 +98,20 @@ static uint32_t gcreq_queue_thread (struct ddsi_gcreq_queue *q)
   int64_t delay = DDS_MSECS (1); /* force evaluation after startup */
   struct ddsi_gcreq *gcreq = NULL;
   int trace_shortsleep = 1;
+  //char pcWriteBuffer[1024];
   ddsrt_mutex_lock (&q->lock);
   while (!(q->terminate && q->count == 0))
   {
     LOG_THREAD_CPUTIME (&q->gv->logconfig, next_thread_cputime);
+    /*vTaskList((char *)pcWriteBuffer);
+    printf("step0:%s\n", pcWriteBuffer);*/
 
     /* While deaf, we need to make sure the receive thread wakes up
        every now and then to try recreating sockets & rejoining multicast
        groups.  Do rate-limit it a bit. */
     if (q->gv->deaf)
     {
+      //printf("q->gv->deaf");
       ddsrt_mtime_t tnow_mt = ddsrt_time_monotonic ();
       if (tnow_mt.v > t_ddsi_trigger_recv_threads.v)
       {
@@ -114,7 +119,8 @@ static uint32_t gcreq_queue_thread (struct ddsi_gcreq_queue *q)
         t_ddsi_trigger_recv_threads.v = tnow_mt.v + DDS_MSECS (100);
       }
     }
-
+    /*vTaskList((char *)pcWriteBuffer);
+    printf("step1:%s\n", pcWriteBuffer);*/
     /* If we are waiting for a gcreq to become ready, don't bother
        looking at the queue; if we aren't, wait for a request to come
        in.  We can't really wait until something came in because we're
@@ -141,6 +147,8 @@ static uint32_t gcreq_queue_thread (struct ddsi_gcreq_queue *q)
         q->first = q->first->next;
       }
     }
+   /* vTaskList((char *)pcWriteBuffer);
+    printf("step2:%s\n", pcWriteBuffer);*/
     ddsrt_mutex_unlock (&q->lock);
 
     /* Cleanup dead proxy entities. One can argue this should be an
@@ -153,7 +161,8 @@ static uint32_t gcreq_queue_thread (struct ddsi_gcreq_queue *q)
     ddsi_thread_state_awake_fixed_domain (thrst);
     delay = ddsi_check_and_handle_lease_expiration (q->gv, ddsrt_time_elapsed ());
     ddsi_thread_state_asleep (thrst);
-
+        /*vTaskList((char *)pcWriteBuffer);
+    printf("step3:%s\n", pcWriteBuffer);*/
     if (gcreq)
     {
       if (!threads_vtime_check (q->gv, &gcreq->nvtimes, gcreq->vtimes))
@@ -184,7 +193,8 @@ static uint32_t gcreq_queue_thread (struct ddsi_gcreq_queue *q)
         trace_shortsleep = 1;
       }
     }
-
+        /*vTaskList((char *)pcWriteBuffer);
+    printf("step4:%s\n", pcWriteBuffer);*/
     ddsrt_mutex_lock (&q->lock);
   }
   ddsrt_mutex_unlock (&q->lock);

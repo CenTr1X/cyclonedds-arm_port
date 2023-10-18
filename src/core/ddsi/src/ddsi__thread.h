@@ -84,6 +84,15 @@ inline void ddsi_thread_state_awake_to_awake_no_nest (struct ddsi_thread_state *
   ddsrt_atomic_fence_acq ();
 }
 
+dds_return_t
+ddsrt_thread_local_storage_push(int index, void *value);
+
+void* ddsrt_thread_local_storage_pull(int index);
+
+dds_return_t
+ddsrt_thread_local_storage_init();
+
+
 #if defined (__cplusplus)
 }
 #endif

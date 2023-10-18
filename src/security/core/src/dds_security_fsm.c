@@ -285,6 +285,7 @@ static void fsm_handle_timeout (struct dds_security_fsm_control *control, struct
 
 static uint32_t handle_events (struct dds_security_fsm_control *control)
 {
+  ddsrt_thread_local_storage_init();
   struct ddsi_thread_state * const thrst = ddsi_lookup_thread_state ();
   struct fsm_event *event;
 

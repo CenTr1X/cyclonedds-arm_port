@@ -1236,6 +1236,7 @@ static void ddsi_xpack_send_real (struct ddsi_xpack *xp)
 
 static uint32_t ddsi_xpack_sendq_thread (void *vgv)
 {
+  ddsrt_thread_local_storage_init();
   struct ddsi_domaingv *gv = vgv;
   struct ddsi_thread_state * const thrst = ddsi_lookup_thread_state ();
   ddsi_thread_state_awake_fixed_domain (thrst);

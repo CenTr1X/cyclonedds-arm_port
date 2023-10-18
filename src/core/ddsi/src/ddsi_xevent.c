@@ -594,6 +594,7 @@ static void handle_xevents (struct ddsi_thread_state * const thrst, struct ddsi_
 
 static uint32_t xevent_thread (struct ddsi_xeventq * xevq)
 {
+  ddsrt_thread_local_storage_init();
   struct ddsi_thread_state * const thrst = ddsi_lookup_thread_state ();
   ddsrt_mtime_t next_thread_cputime = { 0 };
 

@@ -214,7 +214,7 @@ static void vlog1 (const struct ddsrt_log_cfg_impl *cfg, uint32_t cat, uint32_t 
      used with the global one. */
   assert (domid == cfg->c.domid || cfg == &logconfig);
 
-  lb = &log_buffer;
+  lb = ddsrt_thread_local_storage_pull(3);
 
   /* Thread-local buffer is always initialized with all zeroes. The pos
      member must always be greater or equal to BUF_OFFSET. */
