@@ -412,7 +412,9 @@ static dds_return_t dds_delete_impl (dds_entity_t entity, enum delete_impl_state
   dds_entity *e;
   dds_return_t ret;
   if ((ret = dds_entity_pin_for_delete (entity, (delstate != DIS_IMPLICIT), (delstate == DIS_USER), &e)) == DDS_RETCODE_OK)
+  {
     return dds_delete_impl_pinned (e, delstate);
+  }
   else if (ret == DDS_RETCODE_TRY_AGAIN) /* non-child refs exist */
     return DDS_RETCODE_OK;
   else
@@ -433,7 +435,6 @@ dds_return_t dds_delete_impl_pinned (dds_entity *e, enum delete_impl_state delst
 #if TRACE_DELETE
   print_delete (e, delstate, e->m_iid);
 #endif
-
   /* If another thread was racing us in delete, it will have set the CLOSING flag
      while holding m_mutex and we had better bail out. */
   assert (dds_handle_is_closed (&e->m_hdllink));
@@ -456,7 +457,6 @@ static dds_return_t really_delete_pinned_closed_locked (struct dds_entity *e, en
      reused quickly, it needs an update) */
   dds_entity_deriver_interrupt (e);
   ddsrt_mutex_unlock (&e->m_mutex);
-
   /* - Wait for listeners currently in-progress to complete their thing
      - Reset all listeners so no new listener invocations will occur
      - Wait for all pending ones ones to end as well */
@@ -468,7 +468,6 @@ static dds_return_t really_delete_pinned_closed_locked (struct dds_entity *e, en
 
   /* Wait for all other threads to unpin the entity */
   dds_handle_close_wait (&e->m_hdllink);
-
   /* Pin count dropped to one with CLOSING flag set: no other threads still
      in operations involving this entity */
   if (dds_entity_kind (e) == DDS_KIND_WAITSET)
@@ -483,7 +482,6 @@ static dds_return_t really_delete_pinned_closed_locked (struct dds_entity *e, en
   }
   dds_entity_deriver_close (e);
   dds_entity_observers_signal_delete (e);
-
   /*
    * Recursively delete children.
    *
@@ -510,14 +508,12 @@ static dds_return_t really_delete_pinned_closed_locked (struct dds_entity *e, en
   {
     delete_children (e, ~disallowed_kinds[i]);
   }
-
   /* The dds_handle_delete will wait until the last active claim on that handle is
      released. It is possible that this last release will be done by a thread that was
      kicked during the close(). */
   ret = dds_handle_delete (&e->m_hdllink);
   assert (ret == DDS_RETCODE_OK);
   (void) ret;
-
   /* Remove from parent; schedule deletion of parent if it was created implicitly, no
      longer has any remaining children, and we didn't arrive here as a consequence of
      deleting the parent. */
@@ -541,7 +537,6 @@ static dds_return_t really_delete_pinned_closed_locked (struct dds_entity *e, en
     ddsrt_cond_broadcast (&p->m_cond);
     ddsrt_mutex_unlock (&p->m_mutex);
   }
-
   /* Do some specific deletion when needed */
   ret = dds_entity_deriver_delete (e);
   if (ret == DDS_RETCODE_NO_DATA)
@@ -564,7 +559,6 @@ static dds_return_t really_delete_pinned_closed_locked (struct dds_entity *e, en
     dds_entity_final_deinit_before_free (e);
     dds_free (e);
   }
-
   assert (ret == DDS_RETCODE_OK);
   (void) ret;
   return (parent_to_delete != NULL) ? dds_delete_impl_pinned (parent_to_delete, DIS_IMPLICIT) : DDS_RETCODE_OK;

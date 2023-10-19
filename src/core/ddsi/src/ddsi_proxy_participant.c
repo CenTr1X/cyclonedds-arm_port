@@ -129,13 +129,14 @@ static void create_proxy_builtin_endpoint_impl (struct ddsi_domaingv *gv, ddsrt_
 
 static void create_proxy_builtin_endpoints (struct ddsi_domaingv *gv, const struct ddsi_bestab *bestab, int nbes, const struct ddsi_guid *ppguid, struct ddsi_proxy_participant *proxypp, ddsrt_wctime_t timestamp, dds_qos_t *xqos_wr, dds_qos_t *xqos_rd)
 {
-  ddsi_plist_t plist_rd, plist_wr;
+  ddsi_plist_t *plist_rd = malloc(sizeof(ddsi_plist_t));
+  ddsi_plist_t *plist_wr = malloc(sizeof(ddsi_plist_t));
   /* Note: no entity name or group GUID supplied, but that shouldn't
    * matter, as these are internal to DDSI and don't use group coherency */
-  ddsi_plist_init_empty (&plist_wr);
-  ddsi_plist_init_empty (&plist_rd);
-  ddsi_xqos_copy (&plist_wr.qos, xqos_wr);
-  ddsi_xqos_copy (&plist_rd.qos, xqos_rd);
+  ddsi_plist_init_empty (plist_wr);
+  ddsi_plist_init_empty (plist_rd);
+  ddsi_xqos_copy (&(plist_wr->qos), xqos_wr);
+  ddsi_xqos_copy (&(plist_rd->qos), xqos_rd);
   for (int i = 0; i < nbes; i++)
   {
     const struct ddsi_bestab *te = &bestab[i];
@@ -143,11 +144,11 @@ static void create_proxy_builtin_endpoints (struct ddsi_domaingv *gv, const stru
     {
       ddsi_guid_t ep_guid = { .prefix = proxypp->e.guid.prefix, .entityid.u = te->entityid };
       assert (ddsi_is_builtin_entityid (ep_guid.entityid, proxypp->vendor));
-      create_proxy_builtin_endpoint_impl (gv, timestamp, ppguid, proxypp, &ep_guid, ddsi_is_writer_entityid (ep_guid.entityid) ? &plist_wr : &plist_rd, te->topic_name);
+      create_proxy_builtin_endpoint_impl (gv, timestamp, ppguid, proxypp, &ep_guid, ddsi_is_writer_entityid (ep_guid.entityid) ? plist_wr : plist_rd, te->topic_name);
     }
   }
-  ddsi_plist_fini (&plist_wr);
-  ddsi_plist_fini (&plist_rd);
+  ddsi_plist_fini (plist_wr);
+  ddsi_plist_fini (plist_rd);
 }
 
 static void add_proxy_builtin_endpoints (struct ddsi_domaingv *gv, const struct ddsi_guid *ppguid, struct ddsi_proxy_participant *proxypp, ddsrt_wctime_t timestamp)

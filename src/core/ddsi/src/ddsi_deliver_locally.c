@@ -255,8 +255,7 @@ dds_return_t ddsi_deliver_locally_allinsync (struct ddsi_domaingv *gv, struct dd
   /* FIXME: Retry loop for re-delivery of rejected reliable samples is a bad hack
      should instead throttle back the writer by skipping acknowledgement and retry */
   do {
-    //ddsrt_mutex_lock (&fastpath_rdary->rdary_lock);
-    fastpath_rdary->fastpath_ok = false;
+    ddsrt_mutex_lock (&fastpath_rdary->rdary_lock);
     if (fastpath_rdary->fastpath_ok)
     {
       EETRACE (source_entity, " => EVERYONE\n");
@@ -264,11 +263,11 @@ dds_return_t ddsi_deliver_locally_allinsync (struct ddsi_domaingv *gv, struct dd
         rc = deliver_locally_fastpath (gv, source_entity, source_entity_locked, fastpath_rdary, wrinfo, ops, vsourceinfo);
       else
         rc = DDS_RETCODE_OK;
-      //ddsrt_mutex_unlock (&fastpath_rdary->rdary_lock);
+      ddsrt_mutex_unlock (&fastpath_rdary->rdary_lock);
     }
     else
     {
-      //ddsrt_mutex_unlock (&fastpath_rdary->rdary_lock);
+      ddsrt_mutex_unlock (&fastpath_rdary->rdary_lock);
       rc = deliver_locally_slowpath (gv, source_entity, source_entity_locked, wrinfo, ops, vsourceinfo);
     }
   } while (rc == DDS_RETCODE_TRY_AGAIN);

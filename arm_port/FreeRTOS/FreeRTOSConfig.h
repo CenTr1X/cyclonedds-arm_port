@@ -89,7 +89,7 @@
 #define configCPU_CLOCK_HZ                ( ( UBaseType_t) 1000000 )
 #define configTICK_RATE_HZ                ( ( TickType_t ) 1000 )
 #define configMAX_PRIORITIES              ( 5 )
-#define configMINIMAL_STACK_SIZE          ( ( StackType_t ) 128 )
+#define configMINIMAL_STACK_SIZE          ( ( StackType_t ) 256 )
 
 #define configMAX_TASK_NAME_LEN           ( 16 )
 
@@ -154,7 +154,7 @@ NVIC value of 255. */
 #define configLIBRARY_KERNEL_INTERRUPT_PRIORITY     15
 
 
-#define configNUM_THREAD_LOCAL_STORAGE_POINTERS      3
+#define configNUM_THREAD_LOCAL_STORAGE_POINTERS      6
 
 extern void vAssertCalled( const char *pcFile, uint32_t ulLine );
 #define configASSERT( x )  if( ( x ) == 0 ) vAssertCalled( __FILE__, __LINE__ )

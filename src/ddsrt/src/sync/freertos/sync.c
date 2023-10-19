@@ -95,10 +95,8 @@ cond_timedwait(
 
   abstime = ddsrt_time_add_duration(dds_time(), reltime);
   ticks = ddsrt_duration_to_ticks_ceil(reltime);
-
   xSemaphoreTake(cond->sem, portMAX_DELAY);
   ddsrt_mutex_unlock(mutex);
-
   task = xTaskGetCurrentTaskHandle();
   /* Register current task with condition. */
   ddsrt_tasklist_push(&cond->tasks, task);

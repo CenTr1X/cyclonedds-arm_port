@@ -269,7 +269,7 @@ int ddsi_builtins_dqueue_handler (const struct ddsi_rsample_info *sampleinfo, co
   ddsi_guid_t srcguid;
   ddsi_rtps_data_datafrag_common_t *msg;
   unsigned char data_smhdr_flags;
-  ddsi_plist_t qos;
+  ddsi_plist_t *qos = malloc(sizeof(ddsi_plist_t));
 
   /* Luckily, most of the Data and DataFrag headers are the same - and
      in particular, all that we care about here is the same.  The
@@ -307,7 +307,7 @@ int ddsi_builtins_dqueue_handler (const struct ddsi_rsample_info *sampleinfo, co
   need_keyhash = (sampleinfo->size == 0 || (data_smhdr_flags & (DDSI_DATA_FLAG_KEYFLAG | DDSI_DATA_FLAG_DATAFLAG)) == 0);
   if (!(sampleinfo->complex_qos || need_keyhash))
   {
-    ddsi_plist_init_empty (&qos);
+    ddsi_plist_init_empty (qos);
     statusinfo = sampleinfo->statusinfo;
   }
   else
@@ -321,7 +321,7 @@ int ddsi_builtins_dqueue_handler (const struct ddsi_rsample_info *sampleinfo, co
     src.buf = DDSI_RMSG_PAYLOADOFF (fragchain->rmsg, qos_offset);
     src.bufsz = DDSI_RDATA_PAYLOAD_OFF (fragchain) - qos_offset;
     src.strict = DDSI_SC_STRICT_P (gv->config);
-    if ((plist_ret = ddsi_plist_init_frommsg (&qos, NULL, PP_STATUSINFO | PP_KEYHASH, 0, &src, gv, DDSI_PLIST_CONTEXT_INLINE_QOS)) < 0)
+    if ((plist_ret = ddsi_plist_init_frommsg (qos, NULL, PP_STATUSINFO | PP_KEYHASH, 0, &src, gv, DDSI_PLIST_CONTEXT_INLINE_QOS)) < 0)
     {
       if (plist_ret != DDS_RETCODE_UNSUPPORTED)
         GVWARNING ("data(builtin, vendor %u.%u): "PGUIDFMT" #%"PRIu64": invalid inline qos\n",
@@ -331,7 +331,7 @@ int ddsi_builtins_dqueue_handler (const struct ddsi_rsample_info *sampleinfo, co
     /* Complex qos bit also gets set when statusinfo bits other than
        dispose/unregister are set.  They are not currently defined,
        but this may save us if they do get defined one day. */
-    statusinfo = (qos.present & PP_STATUSINFO) ? qos.statusinfo : 0;
+    statusinfo = (qos->present & PP_STATUSINFO) ? qos->statusinfo : 0;
   }
 
   if (pwr && ddsrt_avl_is_empty (&pwr->readers))
@@ -406,8 +406,8 @@ int ddsi_builtins_dqueue_handler (const struct ddsi_rsample_info *sampleinfo, co
     d = ddsi_serdata_from_ser (type, SDK_DATA, fragchain, sampleinfo->size);
   else if (data_smhdr_flags & DDSI_DATA_FLAG_KEYFLAG)
     d = ddsi_serdata_from_ser (type, SDK_KEY, fragchain, sampleinfo->size);
-  else if ((qos.present & PP_KEYHASH) && !DDSI_SC_STRICT_P(gv->config))
-    d = ddsi_serdata_from_keyhash (type, &qos.keyhash);
+  else if ((qos->present & PP_KEYHASH) && !DDSI_SC_STRICT_P(gv->config))
+    d = ddsi_serdata_from_keyhash (type, &(qos->keyhash));
   else
   {
     GVLOGDISC ("data(builtin, vendor %u.%u): "PGUIDFMT" #%"PRIu64": missing payload\n",
@@ -437,7 +437,8 @@ int ddsi_builtins_dqueue_handler (const struct ddsi_rsample_info *sampleinfo, co
   if (gv->logconfig.c.mask & DDS_LC_TRACE)
   {
     ddsi_guid_t guid;
-    char tmp[2048];
+    char *tmp = malloc(2048);
+    memset(tmp, 0, sizeof(tmp));
     size_t res = 0;
     tmp[0] = 0;
     if (gv->logconfig.c.mask & DDS_LC_CONTENT)

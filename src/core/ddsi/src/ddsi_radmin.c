@@ -2524,10 +2524,6 @@ static uint32_t dqueue_thread (struct ddsi_dqueue *q)
     struct ddsi_rsample_chain sc;
 
     LOG_THREAD_CPUTIME (&gv->logconfig, next_thread_cputime);
-    /*char *pcWriteBuffer = malloc(1024);
-    vTaskList((char *)pcWriteBuffer);
-    printf("%s\n", pcWriteBuffer);*/
-    //printf("running...!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!?????????????\n");
     if (q->sc.first == NULL)
       ddsrt_cond_wait (&q->cond, &q->lock);
     sc = q->sc;

@@ -835,24 +835,24 @@ static int handle_spdp_alive (const struct ddsi_receiver_state *rst, ddsi_seqno_
 void ddsi_handle_spdp (const struct ddsi_receiver_state *rst, ddsi_entityid_t pwr_entityid, ddsi_seqno_t seq, const struct ddsi_serdata *serdata)
 {
   struct ddsi_domaingv * const gv = rst->gv;
-  ddsi_plist_t decoded_data;
-  if (ddsi_serdata_to_sample (serdata, &decoded_data, NULL, NULL))
+  ddsi_plist_t *decoded_data = malloc(sizeof(ddsi_plist_t));
+  if (ddsi_serdata_to_sample (serdata, decoded_data, NULL, NULL))
   {
     int interesting = 0;
     switch (serdata->statusinfo & (DDSI_STATUSINFO_DISPOSE | DDSI_STATUSINFO_UNREGISTER))
     {
       case 0:
-        interesting = handle_spdp_alive (rst, seq, serdata->timestamp, &decoded_data);
+        interesting = handle_spdp_alive (rst, seq, serdata->timestamp, decoded_data);
         break;
 
       case DDSI_STATUSINFO_DISPOSE:
       case DDSI_STATUSINFO_UNREGISTER:
       case (DDSI_STATUSINFO_DISPOSE | DDSI_STATUSINFO_UNREGISTER):
-        interesting = handle_spdp_dead (rst, pwr_entityid, serdata->timestamp, &decoded_data, serdata->statusinfo);
+        interesting = handle_spdp_dead (rst, pwr_entityid, serdata->timestamp, decoded_data, serdata->statusinfo);
         break;
     }
 
-    ddsi_plist_fini (&decoded_data);
+    ddsi_plist_fini (decoded_data);
     GVLOG (interesting ? DDS_LC_DISCOVERY : DDS_LC_TRACE, "\n");
   }
 }

@@ -3259,7 +3259,6 @@ static bool do_packet (struct ddsi_thread_state * const thrst, struct ddsi_domai
   DDSRT_STATIC_ASSERT (sizeof (struct ddsi_rmsg) == offsetof (struct ddsi_rmsg, chunk) + sizeof (struct ddsi_rmsg_chunk));
   buff = (unsigned char *) DDSI_RMSG_PAYLOAD (rmsg);
   hdr = (ddsi_rtps_header_t*) buff;
-  printf("step11111111111\n");
   if (conn->m_stream)
   {
     ddsi_rtps_msg_len_t * ml = (ddsi_rtps_msg_len_t*) (hdr + 1);
@@ -3280,7 +3279,6 @@ static bool do_packet (struct ddsi_thread_state * const thrst, struct ddsi_domai
     }
 
     /* Read in remainder of packet */
-    printf("step2222222222222\n");
     if (sz > 0)
     {
       int swap;
@@ -3321,10 +3319,8 @@ static bool do_packet (struct ddsi_thread_state * const thrst, struct ddsi_domai
 
     sz = ddsi_conn_read (conn, buff, buff_len, true, &srcloc);
   }
-  printf("step333333333333333333\n");
   if (sz > 0 && !gv->deaf)
   {
-    printf("sz > 0 && !gv->deaf\n");
     ddsi_rmsg_setsize (rmsg, (uint32_t) sz);
     handle_rtps_message(thrst, gv, conn, guidprefix, rbpool, rmsg, (size_t) sz, buff, &srcloc);
   }
