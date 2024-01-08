@@ -151,7 +151,9 @@ static ssize_t ddsi_udp_conn_write (struct ddsi_tran_conn * conn_cmn, const ddsi
 #if MSG_NOSIGNAL && !LWIP_SOCKET
   sendflags |= MSG_NOSIGNAL;
 #endif
+printf("sendmsg1 start\n");
   rc = ddsrt_sendmsg (conn->m_sock, &msg, sendflags, &nsent);
+  printf("sendmsg1 done\n");
   if (rc != DDS_RETCODE_OK)
   {
     // IIRC, NOT_ALLOWED is something that spuriously happens on some old versions of Linux i.c.w. firewalls
@@ -181,7 +183,9 @@ static ssize_t ddsi_udp_conn_write (struct ddsi_tran_conn * conn_cmn, const ddsi
         WSAEnumNetworkEvents (conn->m_sock, conn->m_sockEvent, &ev);
       }
 #endif
+printf("sendmsg2 start\n");
       rc = ddsrt_sendmsg (conn->m_sock, &msg, sendflags, &nsent);
+      printf("sendmsg2 done\n");
     }
   }
 

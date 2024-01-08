@@ -400,6 +400,9 @@ ddsrt_thread_create(
   } else {
     prio = (UBaseType_t)attr->schedPriority;
   }
+  // if(!strcmp(name, "tev")) {
+  //   prio = 2;
+  // }
   //printf("\n\nthreadname:%s, size:%d\n\n", name, size);
   ddsrt_mutex_lock(&thread_registry.mutex);
 

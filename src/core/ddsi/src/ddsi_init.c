@@ -1000,6 +1000,7 @@ static int setup_and_start_recv_threads (struct ddsi_domaingv *gv)
       GVERROR ("rtps_init: failed to start thread %s\n", gv->recv_threads[i].name);
       goto fail;
     }
+    printf("start thread %s\n", gv->recv_threads[i].name);
   }
   return 0;
 

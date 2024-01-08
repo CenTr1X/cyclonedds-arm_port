@@ -2305,7 +2305,6 @@ static void handle_regular (struct ddsi_receiver_state *rst, ddsrt_etime_t tnow,
   struct ddsi_rsample *rsample;
   ddsi_guid_t dst;
   struct ddsi_lease *lease;
-  printf("handle regular!!!!!!");
   dst.prefix = rst->dst_guid_prefix;
   dst.entityid = msg->readerId;
 
@@ -2536,13 +2535,11 @@ static int handle_SPDP (const struct ddsi_rsample_info *sampleinfo, struct ddsi_
   struct ddsi_rdata *fragchain;
   ddsi_reorder_result_t rres;
   int refc_adjust = 0;
-  printf("handle_SPDP!!!!!!!!!!!!!!\n");
   ddsrt_mutex_lock (&gv->spdp_lock);
   rsample = ddsi_defrag_rsample (gv->spdp_defrag, rdata, sampleinfo);
   fragchain = ddsi_rsample_fragchain (rsample);
   if ((rres = ddsi_reorder_rsample (&sc, gv->spdp_reorder, rsample, &refc_adjust, ddsi_dqueue_is_full (gv->builtins_dqueue))) > 0)
     ddsi_dqueue_enqueue (gv->builtins_dqueue, &sc, rres);
-  printf("rres:%d!!!!!!!!!!!!1\n", rres);
   ddsi_fragchain_adjust_refcount (fragchain, refc_adjust);
   ddsrt_mutex_unlock (&gv->spdp_lock);
   return 0;
@@ -2603,7 +2600,6 @@ static int handle_Data (struct ddsi_receiver_state *rst, ddsrt_etime_t tnow, str
             PGUIDPREFIX (rst->src_guid_prefix), msg->x.writerId.u,
             PGUIDPREFIX (rst->dst_guid_prefix), msg->x.readerId.u,
             ddsi_from_seqno (msg->x.writerSN));
-  printf("handle_Data!!!!!!!!!!!!!");
   if (!rst->forme)
   {
     printf(" not-for-me)");
@@ -2662,7 +2658,6 @@ static int handle_Data (struct ddsi_receiver_state *rst, ddsrt_etime_t tnow, str
     }
     else
     {
-      printf("else regular");
       handle_regular (rst, tnow, rmsg, &msg->x, sampleinfo, UINT32_MAX, rdata, deferred_wakeup, true);
     }
   }
@@ -2947,7 +2942,6 @@ static int handle_submsg_sequence
   struct ddsi_dqueue *deferred_wakeup = NULL;
   ddsi_rtps_submessage_kind_t prev_smid = DDSI_RTPS_SMID_PAD;
   struct defer_hb_state defer_hb_state;
-  printf("handle_submsg_sequence!!!!!!!!!!");
   /* Receiver state is dynamically allocated with lifetime bound to
      the message.  Updates cause a new copy to be created if the
      current one is "live", i.e., possibly referenced by a
@@ -3200,7 +3194,6 @@ static void handle_rtps_message (struct ddsi_thread_state * const thrst, struct 
 {
   ddsi_rtps_header_t *hdr = (ddsi_rtps_header_t *) msg;
   assert (ddsi_thread_is_asleep ());
-  printf("handle_rtps_message!!!!!!!!");
   if (sz < DDSI_RTPS_MESSAGE_HEADER_SIZE || *(uint32_t *)msg != DDSI_PROTOCOLID_AS_UINT32)
   {
     /* discard packets that are really too small or don't have magic cookie */
@@ -3250,7 +3243,6 @@ static bool do_packet (struct ddsi_thread_state * const thrst, struct ddsi_domai
   size_t buff_len = maxsz;
   ddsi_rtps_header_t * hdr;
   ddsi_locator_t srcloc;
-  printf("do_packet!!!!!!\n");
   if (rmsg == NULL)
   {
     return false;
@@ -3516,6 +3508,7 @@ void ddsi_trigger_recv_threads (const struct ddsi_domaingv *gv)
 uint32_t ddsi_recv_thread (void *vrecv_thread_arg)
 {
   ddsrt_thread_local_storage_init();
+  printf("start of recv thread\n");
   struct ddsi_thread_state * const thrst = ddsi_lookup_thread_state ();
   struct ddsi_recv_thread_arg *recv_thread_arg = vrecv_thread_arg;
   struct ddsi_domaingv * const gv = recv_thread_arg->gv;
@@ -3615,7 +3608,6 @@ uint32_t ddsi_recv_thread (void *vrecv_thread_arg)
     }
     local_participant_set_fini (&lps);
   }
-
   GVTRACE ("done\n");
   return 0;
 }

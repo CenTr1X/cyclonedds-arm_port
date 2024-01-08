@@ -2540,7 +2540,6 @@ static uint32_t dqueue_thread (struct ddsi_dqueue *q)
         ddsrt_cond_broadcast (&q->cond);
       }
       ddsi_thread_state_awake_to_awake_no_nest (thrst);
-      //printf("!!!!!!!!!!!!!!!!!!!!dqueue_elem_kind (e):%d!!!!!!!!!!!!!!!!!!\n", dqueue_elem_kind (e));
       switch (dqueue_elem_kind (e))
       {
         case DQEK_DATA:
@@ -2679,7 +2678,6 @@ void ddsi_dqueue_enqueue (struct ddsi_dqueue *q, struct ddsi_rsample_chain *sc, 
   assert (rres > 0);
   assert (sc->first);
   assert (sc->last->next == NULL);
-  printf("enqueue something!!!!!!!\n");
   ddsrt_mutex_lock (&q->lock);
   ddsrt_atomic_add32 (&q->nof_samples, (uint32_t) rres);
   if (ddsi_dqueue_enqueue_locked (q, sc))

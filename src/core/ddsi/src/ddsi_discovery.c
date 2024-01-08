@@ -203,6 +203,7 @@ bool ddsi_handle_sedp_checks (struct ddsi_domaingv * const gv, ddsi_sedp_kind_t 
 static void ddsi_handle_sedp (const struct ddsi_receiver_state *rst, ddsi_seqno_t seq, struct ddsi_serdata *serdata, ddsi_sedp_kind_t sedp_kind)
 {
   ddsi_plist_t decoded_data;
+  printf("called of sedp!!!!\n");
   if (ddsi_serdata_to_sample (serdata, &decoded_data, NULL, NULL))
   {
     struct ddsi_domaingv * const gv = rst->gv;

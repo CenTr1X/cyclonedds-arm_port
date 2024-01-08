@@ -52,7 +52,6 @@ ddsrt_socket(ddsrt_socket_t *sockptr, int domain, int type, int protocol)
     *sockptr = sock;
     return DDS_RETCODE_OK;
   }
-
   switch (errno) {
     case EACCES:
       return DDS_RETCODE_NOT_ALLOWED;

@@ -1179,7 +1179,11 @@ static dds_return_t dds_readtake_status (dds_entity_t entity, uint32_t *status, 
     return DDS_RETCODE_BAD_PARAMETER;
 
   if ((ret = dds_entity_lock (entity, DDS_KIND_DONTCARE, &e)) != DDS_RETCODE_OK)
+  {
+    printf("dds_entity_lock (entity, DDS_KIND_DONTCARE, &e) != DDS_RETCODE_OK\n");
     return ret;
+  }
+    
 
   if ((ret = dds_entity_deriver_validate_status (e, mask)) == DDS_RETCODE_OK)
   {
@@ -1195,19 +1199,30 @@ static dds_return_t dds_readtake_status (dds_entity_t entity, uint32_t *status, 
     // non-materialized DATA_ON_READERS requires a fix-up
     if (dds_entity_kind (e) == DDS_KIND_SUBSCRIBER)
     {
+      printf("dds_entity_kind (e) == DDS_KIND_SUBSCRIBER\n");
       dds_subscriber * const sub = (dds_subscriber *) e;
       ddsrt_mutex_lock (&sub->m_entity.m_observers_lock);
       if (!(sub->materialize_data_on_readers & DDS_SUB_MATERIALIZE_DATA_ON_READERS_FLAG))
       {
+        printf("!(sub->materialize_data_on_readers & DDS_SUB_MATERIALIZE_DATA_ON_READERS_FLAG)\n");
         if (dds_subscriber_compute_data_on_readers_locked (sub))
+        {
           s |= DDS_DATA_ON_READERS_STATUS;
+          printf("dds_subscriber_compute_data_on_readers_locked (sub)\n");
+        }
         else
+        {
           s &= ~(uint32_t)DDS_DATA_ON_READERS_STATUS;
+          printf("!dds_subscriber_compute_data_on_readers_locked (sub)\n");
+        }
+          
       }
       ddsrt_mutex_unlock (&sub->m_entity.m_observers_lock);
     }
 
     *status = s;
+  } else {
+    printf("now ret:%d\n", ret);
   }
   dds_entity_unlock (e);
   return ret;

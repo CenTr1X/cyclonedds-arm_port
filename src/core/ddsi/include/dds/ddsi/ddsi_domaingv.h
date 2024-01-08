@@ -216,7 +216,7 @@ struct ddsi_domaingv {
      trigger socket.) Receive buffer pool is per receive thread,
      it is only a global variable because it needs to be freed way later
      than the receive thread itself terminates */
-#define MAX_RECV_THREADS 3
+#define MAX_RECV_THREADS 10
   uint32_t n_recv_threads;
   struct recv_thread {
     const char *name;

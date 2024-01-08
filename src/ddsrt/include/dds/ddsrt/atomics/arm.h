@@ -117,7 +117,8 @@ inline int ddsrt_atomic_cas32 (volatile ddsrt_atomic_uint32_t *x, uint32_t exp, 
         int error = 1;
     }*/
     int result;
-    portDISABLE_INTERRUPTS();
+    //portDISABLE_INTERRUPTS();
+    vPortEnterCritical();
     /*asm volatile (
 "ldr r1, [%1]\n\t"
 "cmp r1, %2\n\t" 
@@ -140,7 +141,8 @@ inline int ddsrt_atomic_cas32 (volatile ddsrt_atomic_uint32_t *x, uint32_t exp, 
     else {
         result = 1;
     }
-portENABLE_INTERRUPTS();
+//portENABLE_INTERRUPTS();
+vPortExitCritical();
 return result == 0;
 }
 
@@ -191,7 +193,8 @@ inline uint32_t ddsrt_atomic_add32_nv (volatile ddsrt_atomic_uint32_t *x, uint32
   result = x->v;
    return result;*/
     unsigned int result;
-    portDISABLE_INTERRUPTS();
+    vPortEnterCritical();
+    //portDISABLE_INTERRUPTS();
    /*asm volatile (
 "ldr %0, [%1]\n\t"
 
@@ -205,7 +208,8 @@ inline uint32_t ddsrt_atomic_add32_nv (volatile ddsrt_atomic_uint32_t *x, uint32
 );*/
     x->v += v;
     result = x->v;
-    portENABLE_INTERRUPTS();
+    vPortExitCritical();
+    //portENABLE_INTERRUPTS();
     return result;
 }
 

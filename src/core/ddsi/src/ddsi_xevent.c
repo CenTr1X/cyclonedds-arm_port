@@ -591,6 +591,7 @@ static void handle_xevents (struct ddsi_thread_state * const thrst, struct ddsi_
   } while (cont);
   ASSERT_MUTEX_HELD (&xevq->lock);
 }
+#include "printf.h"
 
 static uint32_t xevent_thread (struct ddsi_xeventq * xevq)
 {
@@ -605,7 +606,6 @@ static uint32_t xevent_thread (struct ddsi_xeventq * xevq)
     ddsrt_mtime_t tnow = ddsrt_time_monotonic ();
 
     LOG_THREAD_CPUTIME (&xevq->gv->logconfig, next_thread_cputime);
-
     ddsi_thread_state_awake_fixed_domain (thrst);
     handle_xevents (thrst, xevq, xp, tnow);
     /* Send to the network unlocked, as it may sleep due to bandwidth limitation */
@@ -613,7 +613,7 @@ static uint32_t xevent_thread (struct ddsi_xeventq * xevq)
     ddsi_xpack_send (xp, false);
     ddsrt_mutex_lock (&xevq->lock);
     ddsi_thread_state_asleep (thrst);
-
+    printf("xevent_thread alive!\n");
     if (!non_timed_xmit_list_is_empty (xevq) || xevq->terminate)
     {
       /* continue immediately */

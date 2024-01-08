@@ -574,6 +574,7 @@ static void make_participants_dependent_on_ddsi2 (struct ddsi_domaingv *gv, cons
 
 static int handle_spdp_alive (const struct ddsi_receiver_state *rst, ddsi_seqno_t seq, ddsrt_wctime_t timestamp, const ddsi_plist_t *datap)
 {
+  printf("handle_spdp_alive!\n");
   struct ddsi_domaingv * const gv = rst->gv;
   const unsigned bes_sedp_announcer_mask =
     DDSI_DISC_BUILTIN_ENDPOINT_SUBSCRIPTION_ANNOUNCER |
@@ -625,6 +626,7 @@ static int handle_spdp_alive (const struct ddsi_receiver_state *rst, ddsi_seqno_
   /* Do we know this GUID already? */
   {
     struct ddsi_entity_common *existing_entity;
+    printf("guid of spdp: 0x%x", datap->participant_guid);
     if ((existing_entity = ddsi_entidx_lookup_guid_untyped (gv->entity_index, &datap->participant_guid)) == NULL)
     {
       /* Local SPDP packets may be looped back, and that can include ones
